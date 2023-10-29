@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>QUBGrader</title> 
+
+<script type="text/javascript">
+
+// Declaring the proxy URL's
+let proxyArray = [];
+
+// Retrieving the URL's from the configuration file
+fetch("config.json")
+  .then(response => response.json())
+  .then(json => proxyArray = json.proxyURLS);
+
+// Checking if the modules and marks are valid
+function checkInput()
+{
+    // Adding all of the modules to an array so that I can iterate over them
+    let moduleArray = [];
+    let module_1 = document.getElementById('module_1').value
+    let module_2 = document.getElementById('module_2').value
+    let module_3 = document.getElementById('module_3').value
+    let module_4 = document.getElementById('module_4').value
+    let module_5 = document.getElementById('module_5').value
+    moduleArray.push(module_1)        
+    moduleArray.push(module_2)
+    moduleArray.push(module_3)
+    moduleArray.push(module_4)
+    moduleArray.push(module_5)
+
+    // Validating each module
+    for(var i = 0; i < moduleArray.length; i++)
+    {
+        // Checking if the module is blank
+        if(moduleArray[i].trim() == '')
+        {
+            alert("Please insert a value for module: " + (i+1));
+            return false;
+        }
+    }
+
+
+    // Adding all of the marks to an array so that I can iterate over them
+    let markArray = [];
+    let mark_1 = document.getElementById('mark_1').value
+    let mark_2 = document.getElementById('mark_2').value
+    let mark_3 = document.getElementById('mark_3').value
+    let mark_4 = document.getElementById('mark_4').value
+    let mark_5 = document.getElementById('mark_5').value
+    markArray.push(mark_1);
+    markArray.push(mark_2);
+    markArray.push(mark_3);
+    markArray.push(mark_4);
+    markArray.push(mark_5);
+
+    // Validating each mark
+    for(var i = 0; i < moduleArray.length; i++)
+    {
+        // Checking if the mark is blank
+        if(markArray[i].trim() == '')
+        {
+            alert("Please insert a value for mark: " + (i+1));
+            return false;
+        }
+        // Checking if the mark is a number
+        if(isNaN(markArray[i].trim()))
+        {
+            alert("Mark " + (i+1) + " has to be a number");
+            return false;
+        }
+        // Checking if the number is greater than or equal to 0 or less than or equal to 100
+        if(parseInt(markArray[i]) < 0 || markArray[i] > 100)
+        {
+            alert("Mark " + (i+1) + " has to be >= 0 and <= 100");
+            return false;
+        }
+    }
+    return true;
+}
+
+
+function displayTotal()
+{
+    document.getElementById('output-text').value = 'Total marks = ' + total_marks;
+
+}
+
+function displayMaxMin(max_module,min_module)
+{
+    document.getElementById('output-text').value = 'Highest scoring module = ' + max_module
+    + '\nLowest scoring module = ' + min_module;
+
+}
+
+function displaySortedModules(sorted_modules)
+{
+    document.getElementById('output-text').value = sorted_modules;
+}
+
+function displayClassification(classification)
+{
+    document.getElementById('output-text').value = classification;
+}
+
+function displayPercentNeededForFirst(percent)
+{
+    document.getElementById('output-text').value = percent;
+}
+
+function displayTotal(total)
+{
+    document.getElementById('output-text').value = total;
+}
+
+function displayAverage(average)
+{
+    document.getElementById('output-text').value = average;
+}
+
+async function displayAddDataResult(data)
+{
+    document.getElementById('output-text').value = data;
+}
+
+function addData(data)
+{
+    if(data.Message != undefined)
+    {
+        document.getElementById('output-text').value = data.Message + " Results:" + "\n" + data.results;
+        return;
+    }
+
+    document.getElementById('module_1').value = data.module1;
+    document.getElementById('module_2').value = data.module2;
+    document.getElementById('module_3').value = data.module3;
+    document.getElementById('module_4').value = data.module4;
+    document.getElementById('module_5').value = data.module5;
+
+    document.getElementById('mark_1').value = data.mark1;
+    document.getElementById('mark_2').value = data.mark2;
+    document.getElementById('mark_3').value = data.mark3;
+    document.getElementById('mark_4').value = data.mark4;
+    document.getElementById('mark_5').value = data.mark5;
+}
+
+
+function clearText()
+{
+    document.getElementById('module_1').value = '';
+    document.getElementById('module_2').value = '';
+    document.getElementById('module_3').value = '';
+    document.getElementById('module_4').value = '';
+    document.getElementById('module_5').value = '';
+
+    document.getElementById('mark_1').value = '';
+    document.getElementById('mark_2').value = '';
+    document.getElementById('mark_3').value = '';
+    document.getElementById('mark_4').value = '';
+    document.getElementById('mark_5').value = '';
+
+    document.getElementById('output-text').value = '';
+
+}
+
+async function getMaxMin()
+{
+    // Validating the input
+    // If something is invalid it will not call the microservice
+    if(!checkInput())
+    {
+        return;
+    }
+
+    let module_1 = document.getElementById('module_1').value
+    let module_2 = document.getElementById('module_2').value
+    let module_3 = document.getElementById('module_3').value
+    let module_4 = document.getElementById('module_4').value
+    let module_5 = document.getElementById('module_5').value
+
+    let mark_1 = document.getElementById('mark_1').value
+    let mark_2 = document.getElementById('mark_2').value
+    let mark_3 = document.getElementById('mark_3').value
+    let mark_4 = document.getElementById('mark_4').value
+    let mark_5 = document.getElementById('mark_5').value
+    
+    var messageReceivedFlag = false;
+
+    for(var i = 0; i < proxyArray.length; i++)
+    {
+        let url = proxyArray[i] + "?ConnectionString=MaxMin" + "&module1=" + module_1 + "&mark1=" + mark_1 + "&module2=" + module_2 + "&mark2=" + mark_2
+                    + "&module3=" + module_3 + "&mark3=" + mark_3 + "&module4=" + module_4 + "&mark4=" + mark_4
+                    + "&module5=" + module_5 + "&mark5=" + mark_5;
+
+        await fetch(url, {
+        method: 'GET',
+        headers: {
+            //'Content-Type': 'application/json',
+            //'mode': 'no-cors',
+        },
+        }).then((response) => response.json())
+        .then((data) => {
+            let max_module = data.max_module;
+            let min_module = data.min_module;
+            messageReceivedFlag = true;
+            displayMaxMin(max_module,min_module);
+            proxyArray.reverse();
+        }).catch(err => {
+            console.log("Calling backup");
+        });
+
+        if(messageReceivedFlag)
+        {
+            break;
+        }
+    }
+
+    if(!messageReceivedFlag)
+    {
+        alert("All microservices are down");
+        return;
+    }
+
+    return;
+}
+
+async function getSortedModules()
+{
+    // Validating the input
+    // If something is invalid it will not call the microservice
+    if(!checkInput())
+    {
+        return;
+    }
+
+    let module_1 = document.getElementById('module_1').value
+    let module_2 = document.getElementById('module_2').value
+    let module_3 = document.getElementById('module_3').value
+    let module_4 = document.getElementById('module_4').value
+    let module_5 = document.getElementById('module_5').value
+
+    let mark_1 = document.getElementById('mark_1').value
+    let mark_2 = document.getElementById('mark_2').value
+    let mark_3 = document.getElementById('mark_3').value
+    let mark_4 = document.getElementById('mark_4').value
+    let mark_5 = document.getElementById('mark_5').value
+
+    var messageReceivedFlag = false;
+
+    for(var i = 0; i < proxyArray.length; i++)
+    {
+        let url = proxyArray[i] + "?ConnectionString=SortedModules" + "&module1=" + module_1 + "&mark1=" + mark_1 + "&module2=" + module_2 + "&mark2=" + mark_2
+                    + "&module3=" + module_3 + "&mark3=" + mark_3 + "&module4=" + module_4 + "&mark4=" + mark_4
+                    + "&module5=" + module_5 + "&mark5=" + mark_5;
+
+        await fetch(url, {
+        method: 'GET',
+        headers: {
+            //'Content-Type': 'application/json',
+            //'mode': 'no-cors',
+        },
+        }).then((response) => response.json())
+        .then((data) => {
+            let sorted_modules_returned = data.sorted_modules;
+            let sorted_modules = '';
+            for (let i = 0; i < sorted_modules_returned.length; i++) {
+                console.log(sorted_modules_returned[i]);
+                sorted_modules += sorted_modules_returned[i]['module'] + ' - ' + sorted_modules_returned[i]['marks'] + '\r\n';
+            }
+            messageReceivedFlag = true;
+            displaySortedModules(sorted_modules);
+            proxyArray.reverse();
+        }).catch(err => {
+            console.log("Calling backup");
+        });
+
+        if(messageReceivedFlag)
+        {
+            break;
+        }
+    }
+
+    if(!messageReceivedFlag)
+    {
+        alert("All microservices are down");
+        return;
+    }
+
+    return;
+}
+
+async function getClassification()
+{
+    // Validating the input
+    // If something is invalid it will not call the microservice
+    if(!checkInput())
+    {
+        return;
+    }
+
+    let mark_1 = document.getElementById('mark_1').value
+    let mark_2 = document.getElementById('mark_2').value
+    let mark_3 = document.getElementById('mark_3').value
+    let mark_4 = document.getElementById('mark_4').value
+    let mark_5 = document.getElementById('mark_5').value
+
+    var messageReceivedFlag = false;
+
+    for(var i = 0; i < proxyArray.length; i++)
+    {
+        let url = proxyArray[i] + "?ConnectionString=ClassifyGrade" + "&mark1=" + mark_1 + "&mark2=" + mark_2
+                   + "&mark3=" + mark_3 + "&mark4=" + mark_4 + "&mark5=" + mark_5;
+
+        await fetch(url, {
+        method: 'GET',
+        headers: {
+            //'Content-Type': 'application/json',
+            //'mode': 'no-cors',
+        },
+        }).then((response) => response.json())
+        .then((data) => {
+            messageReceivedFlag = true;
+            displayClassification(data.Classification);
+            proxyArray.reverse();
+        }).catch(err => {
+            console.log("Calling backup");
+        });
+
+        if(messageReceivedFlag)
+        {
+            break;
+        }
+    }
+
+    if(!messageReceivedFlag)
+    {
+        alert("All microservices are down");
+        return;
+    }
+
+    return;
+}
+
+async function getPercentNeededForFirst()
+{
+    // Validating the input
+    // If something is invalid it will not call the microservice
+    if(!checkInput())
+    {
+        return;
+    }
+
+    let mark_1 = document.getElementById('mark_1').value
+    let mark_2 = document.getElementById('mark_2').value
+    let mark_3 = document.getElementById('mark_3').value
+    let mark_4 = document.getElementById('mark_4').value
+    let mark_5 = document.getElementById('mark_5').value
+
+    var messageReceivedFlag = false;
+
+    for(var i = 0; i < proxyArray.length; i++)
+    {
+        let url = proxyArray[i] + "?ConnectionString=PercentNeededForFirst" + "&mark1=" + mark_1 + "&mark2=" + mark_2
+                   + "&mark3=" + mark_3 + "&mark4=" + mark_4 + "&mark5=" + mark_5;
+
+        console.log(url);
+
+        await fetch(url, {
+        method: 'GET',
+        headers: {
+            //'Content-Type': 'application/json',
+            //'mode': 'no-cors',
+        },
+        }).then((response) => response.json())
+        .then((data) => {
+            messageReceivedFlag = true;
+            displayPercentNeededForFirst(data.Message);
+            proxyArray.reverse();
+        }).catch(err => {
+            console.log("Calling backup");
+        });
+
+        if(messageReceivedFlag)
+        {
+            break;
+        }
+    }
+
+    if(!messageReceivedFlag)
+    {
+        alert("All microservices are down");
+        return;
+    }
+
+    
+    return;
+}
+
+async function getTotal()
+{
+    // Validating the input
+    // If something is invalid it will not call the microservice
+    if(!checkInput())
+    {
+        return;
+    }
+
+    let mark_1 = document.getElementById('mark_1').value
+    let mark_2 = document.getElementById('mark_2').value
+    let mark_3 = document.getElementById('mark_3').value
+    let mark_4 = document.getElementById('mark_4').value
+    let mark_5 = document.getElementById('mark_5').value
+
+    var messageReceivedFlag = false;
+
+    for(var i = 0; i < proxyArray.length; i++)
+    {
+        let url = proxyArray[i] + "?ConnectionString=TotalMarks" + "&mark1=" + mark_1 + "&mark2=" + mark_2
+                   + "&mark3=" + mark_3 + "&mark4=" + mark_4 + "&mark5=" + mark_5;
+
+        console.log(url);
+
+        await fetch(url, {
+        method: 'GET',
+        headers: {
+        },
+        }).then((response) => response.json())
+        .then((data) => {
+            messageReceivedFlag = true;
+            displayTotal(data.message);
+            proxyArray.reverse();
+        }).catch(err => {
+            console.log("Calling backup");
+        });
+
+        if(messageReceivedFlag)
+        {
+            break;
+        }
+    }
+
+    if(!messageReceivedFlag)
+    {
+        alert("All microservices are down");
+        return;
+    }
+
+    return;
+}
+
+async function getAverage()
+{
+    // Validating the input
+    // If something is invalid it will not call the microservice
+    if(!checkInput())
+    {
+        return;
+    }
+
+    let mark_1 = document.getElementById('mark_1').value
+    let mark_2 = document.getElementById('mark_2').value
+    let mark_3 = document.getElementById('mark_3').value
+    let mark_4 = document.getElementById('mark_4').value
+    let mark_5 = document.getElementById('mark_5').value
+
+    var messageReceivedFlag = false;
+
+    for(var i = 0; i < proxyArray.length; i++)
+    {
+        let url = proxyArray[i] + "?ConnectionString=AverageGrade" + "&mark1=" + mark_1 + "&mark2=" + mark_2
+                   + "&mark3=" + mark_3 + "&mark4=" + mark_4 + "&mark5=" + mark_5;
+
+        await fetch(url, {
+        method: 'GET',
+        headers: {
+        },
+        }).then((response) => response.json())
+        .then((data) => {
+            messageReceivedFlag = true;
+            displayTotal(data.Message);
+            proxyArray.reverse();
+        }).catch(err => {
+            console.log("Calling backup");
+        });
+
+        if(messageReceivedFlag)
+        {
+            break;
+        }
+    }
+
+
+    if(!messageReceivedFlag)
+    {
+        alert("All microservices are down");
+        return;
+    }
+
+    return;
+}
+
+async function getModulesFromDatabase()
+{
+    
+    let userName = document.getElementById('userName').value
+    if(userName.trim() == "")
+    {
+        alert("Please enter a username");
+        return;
+    }
+
+
+    var messageReceivedFlag = false;
+
+    for(var i = 0; i < proxyArray.length; i++)
+    {
+        let url = proxyArray[i] + "?ConnectionString=RetrieveFromDatabase" + "&userName=" + userName + "&mark1=0&mark2=0&mark3=0&mark4=0&mark5=0";
+
+        await fetch(url, {
+        method: 'GET',
+        headers: {
+            //'Content-Type': 'application/json',
+            //'mode': 'no-cors',
+        },
+        }).then((response) => response.json())
+        .then((data) => {
+            messageReceivedFlag = true;
+            console.log(data);
+            addData(data);
+            displayTotal("Data retrieved for username " + userName + "\n" + data.results);
+            proxyArray.reverse();
+        }).catch(err => {
+            console.log("Calling backup");
+        });
+
+        if(messageReceivedFlag)
+        {
+            break;
+        }
+    }
+
+    if(!messageReceivedFlag)
+    {
+        alert("All microservices are down");
+        return;
+    }
+
+    return;
+
+}
+
+async function saveModulesToDatabase()
+{
+    // Validating the input
+    // If something is invalid it will not call the microservice
+    if(!checkInput())
+    {
+        return;
+    }
+
+    let module_1 = document.getElementById('module_1').value
+    let module_2 = document.getElementById('module_2').value
+    let module_3 = document.getElementById('module_3').value
+    let module_4 = document.getElementById('module_4').value
+    let module_5 = document.getElementById('module_5').value
+
+    let mark_1 = document.getElementById('mark_1').value
+    let mark_2 = document.getElementById('mark_2').value
+    let mark_3 = document.getElementById('mark_3').value
+    let mark_4 = document.getElementById('mark_4').value
+    let mark_5 = document.getElementById('mark_5').value
+
+    let userName = document.getElementById('userName').value
+    let proxyFlag = false;
+
+    for(var i = 0; i < proxyArray.length; i++)
+    {
+        if(!proxyFlag)
+        {
+            let averageUrl = proxyArray[i] + "?ConnectionString=AverageGrade" + "&mark1=" + mark_1 + "&mark2=" + mark_2
+                   + "&mark3=" + mark_3 + "&mark4=" + mark_4 + "&mark5=" + mark_5;
+            var xmlHttp = new XMLHttpRequest();
+            xmlHttp.open( "GET", averageUrl, false ); // false for synchronous request
+            xmlHttp.send( null );
+            var averageText = await JSON.parse(xmlHttp.responseText).Message;
+
+            let totalUrl = proxyArray[i] + "?ConnectionString=TotalMarks" + "&mark1=" + mark_1 + "&mark2=" + mark_2
+                   + "&mark3=" + mark_3 + "&mark4=" + mark_4 + "&mark5=" + mark_5;
+            var xmlHttp = new XMLHttpRequest();
+            xmlHttp.open( "GET", totalUrl, false ); // false for synchronous request
+            xmlHttp.send( null );
+            var totalText = await JSON.parse(xmlHttp.responseText).message;
+
+            let percentNeededForFirstURL = proxyArray[i] + "?ConnectionString=PercentNeededForFirst" + "&mark1=" + mark_1 + "&mark2=" + mark_2
+                   + "&mark3=" + mark_3 + "&mark4=" + mark_4 + "&mark5=" + mark_5;            
+            var xmlHttp = new XMLHttpRequest();
+            xmlHttp.open( "GET", percentNeededForFirstURL, false ); // false for synchronous request
+            xmlHttp.send( null );
+            var percentNeededForFirstText = await JSON.parse(xmlHttp.responseText).Message;
+
+            let classificationUrl = proxyArray[i] + "?ConnectionString=ClassifyGrade" + "&mark1=" + mark_1 + "&mark2=" + mark_2
+                   + "&mark3=" + mark_3 + "&mark4=" + mark_4 + "&mark5=" + mark_5;
+            var xmlHttp = new XMLHttpRequest();
+            xmlHttp.open( "GET", classificationUrl, false ); // false for synchronous request
+            xmlHttp.send( null );
+            var classificationText = await JSON.parse(xmlHttp.responseText).Classification;
+
+            let sortedModulesUrl = proxyArray[i] + "?ConnectionString=SortedModules" + "&module1=" + module_1 + "&mark1=" + mark_1 + "&module2=" + module_2 + "&mark2=" + mark_2
+                    + "&module3=" + module_3 + "&mark3=" + mark_3 + "&module4=" + module_4 + "&mark4=" + mark_4
+                    + "&module5=" + module_5 + "&mark5=" + mark_5;
+            var xmlHttp = new XMLHttpRequest();
+            xmlHttp.open( "GET", sortedModulesUrl, false ); // false for synchronous request
+            xmlHttp.send( null );
+            var sorted_modules = await JSON.parse(xmlHttp.responseText);
+            let sorted_modules_returned = sorted_modules.sorted_modules;
+            var sortedModulesText = '';
+            for (let i = 0; i < sorted_modules_returned.length; i++) {
+                sortedModulesText += sorted_modules_returned[i]['module'] + ' - ' + sorted_modules_returned[i]['marks'] + ', \r\n';
+            }
+
+            let maxMinUrl = proxyArray[i] + "?ConnectionString=MaxMin" + "&module1=" + module_1 + "&mark1=" + mark_1 + "&module2=" + module_2 + "&mark2=" + mark_2
+                    + "&module3=" + module_3 + "&mark3=" + mark_3 + "&module4=" + module_4 + "&mark4=" + mark_4
+                    + "&module5=" + module_5 + "&mark5=" + mark_5;
+            var xmlHttp = new XMLHttpRequest();
+            xmlHttp.open( "GET", maxMinUrl, false ); // false for synchronous request
+            xmlHttp.send( null );
+            var maxText = await JSON.parse(xmlHttp.responseText).max_module;
+            var minText = await JSON.parse(xmlHttp.responseText).min_module;
+            var maxMinText = maxText + ", " + minText;
+
+            if(xmlHttp.status == 200)
+            {
+                proxyFlag = true;
+            }
+        }
+        
+    }
+    
+
+    var messageReceivedFlag = false;
+
+    for(var i = 0; i < proxyArray.length; i++)
+    {
+        let url = proxyArray[i] + "?ConnectionString=SaveToDatabase" + "&userName=" + userName + "&module1=" + module_1 + "&mark1=" + mark_1 + "&module2=" + module_2 + "&mark2=" + mark_2
+            + "&module3=" + module_3 + "&mark3=" + mark_3 + "&module4=" + module_4 + "&mark4=" + mark_4
+            + "&module5=" + module_5 + "&mark5=" + mark_5 + "&maxmin=" + maxMinText + "&sortedmodules=" + sortedModulesText
+            + "&classifygrade=" + classificationText + "&percentneededforfirst=" + percentNeededForFirstText
+            + "&totalmarks=" + totalText + "&averagegrade=" + averageText;
+
+        await fetch(url, {
+        method: 'GET',
+        headers: {
+            //'Content-Type': 'application/json',
+            //'mode': 'no-cors',
+        },
+        }).then((response) => response.json())
+        .then((data) => {
+            messageReceivedFlag = true;
+            console.log(data);
+            displayAddDataResult(data.Message);
+            proxyArray.reverse();
+        }).catch(err => {
+            console.log("Calling backup");
+        });
+
+        if(messageReceivedFlag)
+        {
+            break;
+        }
+    }
+
+    if(!messageReceivedFlag)
+    {
+        alert("All microservices are down");
+        return;
+    }
+
+
+}
+
+</script>
+
+<style type="text/css">
+body  {
+    font-size: 150%;
+    font-family: monospace;
+}
+
+#logo
+{
+    font-family: Calibri, sans-serif;
+    font-weight: lighter;
+    color: #505050;
+    margin: 0.5em;
+}
+
+#qga
+{
+    text-align: center;
+    margin-top: 1em;
+}
+
+.display-module {
+    font-size: 90%;
+    color: black;
+    background-color: white;
+    padding: 0.2em;
+    margin: 0.2em;
+    font-family: monospace;
+    letter-spacing: 0.1em;
+    width: 480px;
+
+}
+
+.display-mark{
+    font-size: 90%;
+    color: black;
+    background-color: white;
+    padding: 0.2em;
+    margin: 0.2em;
+    font-family: monospace;
+    letter-spacing: 0.1em;
+    width: 90px;
+
+}
+
+.display-output {
+    font-size: 90%;
+    color: white;
+    background-color: black;
+    padding: 0.2em;
+    margin: 0.2em;
+    font-family: monospace;
+    letter-spacing: 0.1em;
+    width: 600px;
+
+}
+
+.qgabutton-active {
+    background-color: green;
+    color: white;
+    padding: 0px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 18px;
+    margin: 4px 2px;
+    cursor: pointer;
+    height: 40px;
+    width: 400px;
+}
+
+.qgabutton-inactive {
+    background-color: gray;
+    color: white;
+    padding: 0px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 18px;
+    margin: 4px 2px;
+    cursor: pointer;
+    height: 40px;
+    width: 400px;
+}
+
+.qgabutton-clear {
+    background-color: red;
+    color: white;
+    padding: 0px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 18px;
+    margin: 4px 2px;
+    cursor: pointer;
+    height: 40px;
+    width: 400px;
+}
+
+</style>
+
+</head>
+<body>
+<div id="qga">
+    <div id="logo">
+        QUB GradeMe App
+    </div>
+        <input class="display-module" type="text" id="userName" name="module_1" placeholder="UserName">
+        <button class="qgabutton-active" onclick="getModulesFromDatabase();">Retrieve Results from database</button>
+        <button class="qgabutton-active" onclick="saveModulesToDatabase();">Save user to the database</button>
+    <div>
+        <input class="display-module" type="text" id="module_1" name="module_1" placeholder="Module 1">
+        <input class="display-mark"  type="text" id="mark_1" name="mark_1" placeholder="Mark 1"></br>
+        <input class="display-module" type="text" id="module_2" name="module_2" placeholder="Module 2">
+        <input class="display-mark"  type="text" id="mark_2" name="mark_2" placeholder="Mark 2"></br>
+        <input class="display-module" type="text" id="module_3" name="module_3" placeholder="Module 3">
+        <input class="display-mark"  type="text" id="mark_3" name="mark_3" placeholder="Mark 3"></br>
+        <input class="display-module" type="text" id="module_4" name="module_4" placeholder="Module 4">
+        <input class="display-mark"  type="text" id="mark_4" name="mark_4" placeholder="Mark 4"></br>
+        <input class="display-module" type="text" id="module_5" name="module_5" placeholder="Module 5">
+        <input class="display-mark"  type="text" id="mark_5" name="mark_5" placeholder="Mark 5">
+    </div>
+    <div>
+        <textarea class="display-output" id="output-text" rows="5" cols="35" readonly=1 placeholder="Results here..." value="">
+        </textarea>
+    </div>
+    <div>
+        <button class="qgabutton-active" onclick="getMaxMin();">Highest & Lowest Scoring Modules</button>
+    </div>
+    <div>
+        <button class="qgabutton-active" onclick="getSortedModules();">Sort Modules</button>
+    </div>
+    <div>
+        <button class="qgabutton-active" onclick="getTotal();">Total Marks</button>
+    </div>
+    <div>
+        <button class="qgabutton-active" onclick="getClassification();">Classify Grade</button>
+    </div>
+    <div>
+        <button class="qgabutton-active" onclick="getPercentNeededForFirst();">Percent Needed For First</button>
+    </div>
+    <div>
+        <button class="qgabutton-active" onclick="getAverage();">Get Average</button>
+    </div>
+    <div>
+        <button class="qgabutton-clear" onclick="clearText();">Clear</button>
+    </div>
+
+</div>
+</body>
+
+<script type="text/javascript">
+</script>
+
+</html>

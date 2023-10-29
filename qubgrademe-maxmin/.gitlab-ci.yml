@@ -1,0 +1,31 @@
+# Uses the python docker image
+image: php:7.2-apache
+
+# Test the project
+test:
+  image: php:8.0
+  tags:
+    - "dind"
+  script:
+    # Update and install necessary packages
+    - apt -y update 
+    - apt -y install git zip
+
+    # Install composer
+    - curl -sS https://getcomposer.org/installer | php
+
+    # Create the composer lock file
+    - php composer.phar install
+
+    # Run the tests
+    - vendor/bin/phpunit --configuration phpunit.xml --coverage-text
+
+deploy:
+  image: docker:latest
+  stage: deploy
+  tags:
+    - "dind"
+  script:
+    - docker build -t registry.hal.davecutting.uk/40266405/qubgrademe-maxmin .
+    - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
+    - docker push registry.hal.davecutting.uk/40266405/qubgrademe-maxmin

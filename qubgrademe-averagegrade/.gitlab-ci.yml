@@ -1,0 +1,25 @@
+# Using the maven docker image
+image: maven:latest
+
+# Building the java microservice
+build:
+  stage: build
+  script:
+    - mvn compile
+
+# Testing the java microservice
+test:
+  stage: test
+  script:
+    - mvn test -X
+
+# Deploying the java microservice
+deploy:
+  image: docker:latest
+  stage: deploy
+  tags:
+    - "dind"
+  script:
+    - docker build -t registry.hal.davecutting.uk/40266405/qubgrademe-averagegrade .
+    - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
+    - docker push registry.hal.davecutting.uk/40266405/qubgrademe-averagegrade

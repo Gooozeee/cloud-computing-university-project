@@ -1,0 +1,27 @@
+# Uses the c# dotnet docker image
+image: mcr.microsoft.com/dotnet/sdk:6.0
+
+# Build the project and restore dependencies
+build:
+  stage: build
+  script:
+    - 'dotnet build ./qubgrademe-savetodatabase'
+
+# Test the project
+# test:
+#   stage: test
+#   script:
+#     - 'dotnet test ./qubgrademe-proxy.test'
+
+deploy:
+  image: docker:latest
+  stage: deploy
+  tags:
+    - "dind"
+  # services:
+  #   - docker:dind
+  script:
+    - cd ./qubgrademe-savetodatabase
+    - docker build -t registry.hal.davecutting.uk/40266405/qubgrademe-savetodatabase .
+    - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
+    - docker push registry.hal.davecutting.uk/40266405/qubgrademe-savetodatabase

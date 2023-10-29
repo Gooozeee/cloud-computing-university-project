@@ -1,0 +1,10 @@
+# Deploying the new image to the QPC container registry
+deploy:
+  image: docker:latest
+  stage: deploy
+  tags:
+    - "dind"
+  script:
+    - docker build -t registry.hal.davecutting.uk/40266405/qubgrademe-monitoring .
+    - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
+    - docker push registry.hal.davecutting.uk/40266405/qubgrademe-monitoring

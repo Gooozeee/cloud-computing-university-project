@@ -1,0 +1,15 @@
+# Uses the python docker image
+image: python:3.9
+
+# Install the necessary packages
+before_script:
+  - python --version  # For debugging
+  - pip install pytest
+  - pip install azure.functions
+  - pip install requests
+
+# Test the project
+test:
+  script:
+    - python -m pytest -v ./src/qubgrademe-classifygrade/tests/qubgrademe-classifygrade-test.py
+    - python -m pytest -v ./src/qubgrademe-classifygrade/tests/qubgrademe-classifygrade-integrationtest.py

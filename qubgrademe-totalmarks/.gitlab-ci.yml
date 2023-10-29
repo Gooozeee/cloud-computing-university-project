@@ -1,0 +1,25 @@
+# Uses the python docker image
+image: python:3.9
+
+# Test the project
+test:
+  script:
+    - python --version  # For debugging
+    - pip install flask
+    - pip install pytest
+    - pip install pytest-flask
+    - pip install flask_cors
+    - pip install requests
+    - python -m pytest -v flaskAppUnitTest.py
+    - python -m pytest -v flaskAppIntegrationTest.py
+
+# Deploy the project
+deploy:
+  image: docker:latest
+  stage: deploy
+  tags:
+    - "dind"
+  script:
+    - docker build -t registry.hal.davecutting.uk/40266405/qubgrademe-totalmarks .
+    - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
+    - docker push registry.hal.davecutting.uk/40266405/qubgrademe-totalmarks

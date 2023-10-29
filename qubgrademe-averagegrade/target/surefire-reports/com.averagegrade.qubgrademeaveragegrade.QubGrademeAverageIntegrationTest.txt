@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.averagegrade.qubgrademeaveragegrade.QubGrademeAverageIntegrationTest
+-------------------------------------------------------------------------------
+Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.33 s - in com.averagegrade.qubgrademeaveragegrade.QubGrademeAverageIntegrationTest

@@ -1,0 +1,26 @@
+# Uses the c# dotnet docker image
+image: mcr.microsoft.com/dotnet/sdk:6.0
+
+# Build the project and restore dependencies
+build:
+  stage: build
+  script:
+    - 'dotnet build ./src/qubgrademe-percentneededforfirst'
+
+# Test the project
+test:
+  stage: test
+  script:
+    - 'dotnet test ./src/qubgrademe-percentneededforfirst.test'
+
+# Deploying the project
+deploy:
+  image: docker:latest
+  stage: deploy
+  tags:
+    - "dind"
+  script:
+    - cd ./src/qubgrademe-percentneededforfirst
+    - docker build -t registry.hal.davecutting.uk/40266405/qubgrademe-percentneededforfirst .
+    - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
+    - docker push registry.hal.davecutting.uk/40266405/qubgrademe-percentneededforfirst

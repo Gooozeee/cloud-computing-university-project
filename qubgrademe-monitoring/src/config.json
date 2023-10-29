@@ -1,0 +1,15 @@
+{ 
+    "proxyURL": "http://qubgrademe-proxy.40266405.qpc.hal.davecutting.uk/proxy?ConnectionString=MaxMin&Module1=a&module2=b&module3=a&module4=a&module5=a&mark1=70&mark2=65&mark3=70&mark4=70&mark5=70" ,
+    "proxyURLBackup": "http://qubgrademe-proxy-backup.40266405.qpc.hal.davecutting.uk/proxy?ConnectionString=MaxMin&Module1=a&module2=b&module3=a&module4=a&module5=a&mark1=70&mark2=65&mark3=70&mark4=70&mark5=70",
+    "MaxMin": "http://qubgrademe-proxy.40266405.qpc.hal.davecutting.uk/proxy?ConnectionString=MaxMin&Module1=a&module2=b&module3=a&module4=a&module5=a&mark1=70&mark2=65&mark3=70&mark4=70&mark5=70",
+    "SortedModules": "http://qubgrademe-proxy.40266405.qpc.hal.davecutting.uk/proxy?ConnectionString=SortedModules&Module1=a&module2=a&module3=a&module4=a&module5=a&mark1=70&mark2=70&mark3=70&mark4=70&mark5=70",
+    "ClassifyGrade": "http://qubgrademe-proxy.40266405.qpc.hal.davecutting.uk/proxy?ConnectionString=ClassifyGrade&Module1=70&module2=70&module3=70&module4=70&module5=70&mark1=70&mark2=70&mark3=70&mark4=70&mark5=70",
+    "PercentNeededForFirst": "http://qubgrademe-proxy.40266405.qpc.hal.davecutting.uk/proxy?ConnectionString=PercentNeededForFirst&Module1=70&module2=70&module3=70&module4=70&module5=70&mark1=70&mark2=70&mark3=70&mark4=70&mark5=70",
+    "TotalMarks": "http://qubgrademe-proxy.40266405.qpc.hal.davecutting.uk/proxy?ConnectionString=TotalMarks&Module1=70&module2=70&module3=70&module4=70&module5=70&mark1=70&mark2=70&mark3=70&mark4=70&mark5=70",
+    "AverageGrade": "http://qubgrademe-proxy.40266405.qpc.hal.davecutting.uk/proxy?ConnectionString=AverageGrade&Module1=70&module2=70&module3=70&module4=70&module5=70&mark1=70&mark2=70&mark3=70&mark4=70&mark5=70",
+    "FrontEnd": "http://qubgrademe-frontend.40266405.qpc.hal.davecutting.uk/",
+    "Retrieve": "http://qubgrademe-proxy.40266405.qpc.hal.davecutting.uk/proxy?ConnectionString=RetrieveFromDatabase&userName=Michal&mark1=0&mark2=0&mark3=0&mark4=0&mark5=0",
+    "Save": "http://qubgrademe-proxy.40266405.qpc.hal.davecutting.uk/proxy?ConnectionString=SaveToDatabase&userName=Michal&module1=CSC-3068&mark1=78&module2=CSC-3065&mark2=65&module3=CSC-3042&mark3=76&module4=CSC-3057&mark4=65&module5=CSC-3067&mark5=76&maxmin=CSC-3068%20-%2078CSC-3057%20-%2065&sortedmodules=CSC-3068%20-%2078CSC-3042%20-%2076CSC-3067%20-%2076CSC-3065%20-%2065CSC-3057%20-%2065&classifygrade=First%20Class&percentneededforfirst=You%20have%20already%20achieved%20a%20first%20with%2072%&totalmarks=Your%20total%20marks%20are:%20360&averagegrade=Your%20average%20grade%20is:%2072",
+    "RetrieveLatency": "https://qubgrademe-savetodatabase20221128232120.azurewebsites.net/retrievelatencies",
+    "AddLatencies": "https://qubgrademe-savetodatabase20221128232120.azurewebsites.net/addLatencies"
+}

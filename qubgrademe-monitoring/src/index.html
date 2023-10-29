@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>QUBGrader Monitor</title>
+
+<script src="https://smtpjs.com/v3/smtp.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
+
+<script type="text/javascript">
+    // Declaring the proxy URL's
+    let proxyURL = "";
+    let proxyURLBackup = "";
+
+    // Declaring the service URL's to be monitored
+    let qubgrademefrontend = "";
+    let qubgradememaxmin = "";
+    let qubgrademesortedmodules = "";
+    let qubgrademeclassification = "";
+    let qubgrademepercentneededforfirst = "";
+    let qubgrademetotal = "";
+    let qubgrademeaveragegrade = "";
+    let qubgrademeretrieve = "";
+    let qubgrademesave = "";
+    let qubgrademeretrievelatency = "";
+    let qubgrademesavelatency = "";
+
+    // Retrieving the URL's from the configuration file
+    fetch("config.json")
+    .then(response => response.json())
+    .then(json => {
+        proxyURL = json.proxyURL; 
+        proxyURLBackup = json.proxyURLBackup;
+        qubgrademefrontend = json.FrontEnd;
+        qubgradememaxmin = json.MaxMin;
+        qubgrademesortedmodules = json.SortedModules;
+        qubgrademeclassification = json.ClassifyGrade;
+        qubgrademepercentneededforfirst = json.PercentNeededForFirst;
+        qubgrademetotal = json.TotalMarks;
+        qubgrademeaveragegrade = json.AverageGrade;
+        qubgrademeretrieve = json.Retrieve;
+        qubgrademesave = json.Save;
+        qubgrademeretrievelatency = json.RetrieveLatency;
+        qubgrademesavelatency = json.AddLatencies;
+    });
+
+
+    // Check if the microservices are up and running every 5 minutes
+    setTimeout(() => {
+        UpdateLatency();
+        
+    }, 1000);
+    setInterval(UpdateLatency, 600000);
+
+    function displayProxyLatency(latency, flag)
+    {
+        console.log('Proxy latency: ' + latency.toString() + 'ms');
+        document.getElementById('latency-proxy').value = 'Latency: ' + latency.toString() + 'ms';
+        document.getElementById('proxy-paragraph').innerHTML = 'The service is up and running';
+        if(flag)
+        {
+            document.getElementById('test-proxy').innerHTML = 'The microservice returns the correct value';
+        }
+        else {
+            document.getElementById('test-proxy').innerHTML = 'The microservice is returning an incorrect value';
+        }
+    }
+
+    function displayProxyBackupLatency(latency, flag)
+    {
+        console.log('Proxy backup latency: ' + latency.toString() + 'ms');
+        document.getElementById('latency-proxyBackup').value = 'Latency: ' + latency.toString() + 'ms';
+        document.getElementById('proxy-backup-paragraph').innerHTML = 'The service is up and running';
+        if(flag)
+        {
+            document.getElementById('test-proxy-backup').innerHTML = 'The microservice returns the correct value';
+        }
+        else {
+            document.getElementById('test-proxy-backup').innerHTML = 'The microservice is returning an incorrect value';
+        }
+    }
+
+    function displaySortedModulesLatency(latency, flag)
+    {
+        console.log('Front End latency: ' + latency.toString() + 'ms');
+        document.getElementById('latency-sortedmodules').value = 'Latency: ' + latency.toString() + 'ms';
+        document.getElementById('sortedmodules-paragraph').innerHTML = 'The service is up and running';
+        if(flag)
+        {
+            document.getElementById('test-sortedmodules').innerHTML = 'The microservice returns the correct value';
+        }
+        else {
+            document.getElementById('test-sortedmodules').innerHTML = 'The microservice is returning an incorrect value';
+        }
+    }
+
+    function displayMaxMinLatency(latency, flag)
+    {
+        console.log('MaxMin latency: ' + latency.toString() + 'ms');
+        document.getElementById('latency-maxmin').value = 'Latency: ' + latency.toString() + 'ms';
+        document.getElementById('maxmin-paragraph').innerHTML = 'The service is up and running';
+        if(flag)
+        {
+            document.getElementById('test-maxmin').innerHTML = 'The microservice returns the correct value';
+        }
+        else {
+            document.getElementById('test-maxmin').innerHTML = 'The microservice is returning an incorrect value';
+        }
+    }
+
+    function displayClassificationLatency(latency, flag)
+    {
+        console.log('Classification latency: ' + latency.toString() + 'ms');
+        document.getElementById('latency-classification').value = 'Latency: ' + latency.toString() + 'ms';
+        document.getElementById('classification-paragraph').innerHTML = 'The service is up and running';
+        if(flag)
+        {
+            document.getElementById('test-classification').innerHTML = 'The microservice returns the correct value';
+        }
+        else {
+            document.getElementById('test-classification').innerHTML = 'The microservice is returning an incorrect value';
+        }
+    }
+
+    function displayPercentNeededForFirstLatency(latency, flag)
+    {
+        console.log('Percent Needed For First latency: ' + latency.toString() + 'ms');
+        document.getElementById('latency-percentneededforfirst').value = 'Latency: ' + latency.toString() + 'ms';
+        document.getElementById('percentneededforfirst-paragraph').innerHTML = 'The service is up and running';
+        if(flag)
+        {
+            document.getElementById('test-percentneededforfirst').innerHTML = 'The microservice returns the correct value';
+        }
+        else {
+            document.getElementById('test-percentneededforfirst').innerHTML = 'The microservice is returning an incorrect value';
+        }
+    }
+
+    function displayTotalLatency(latency, flag)
+    {
+        console.log('Total latency: ' + latency.toString() + 'ms');
+        document.getElementById('latency-total').value = 'Latency: ' + latency.toString() + 'ms';
+        document.getElementById('total-paragraph').innerHTML = 'The service is up and running';
+        if(flag)
+        {
+            document.getElementById('test-total').innerHTML = 'The microservice returns the correct value';
+        }
+        else {
+            document.getElementById('test-total').innerHTML = 'The microservice is returning an incorrect value';
+        }
+    }
+
+    function displayAverageGradeLatency(latency, flag)
+    {
+        console.log('Average grade latency: ' + latency.toString() + 'ms');
+        document.getElementById('latency-averagegrade').value = 'Latency: ' + latency.toString() + 'ms';
+        document.getElementById('averagegrade-paragraph').innerHTML = 'The service is up and running';
+        if(flag)
+        {
+            document.getElementById('test-averagegrade').innerHTML = 'The microservice returns the correct value';
+        }
+        else {
+            document.getElementById('test-averagegrade').innerHTML = 'The microservice is returning an incorrect value';
+        }
+    }
+
+    function displayRetrieveLatency(latency, flag)
+    {
+        console.log('Retrieve from database latency: ' + latency.toString() + 'ms');
+        document.getElementById('latency-retrieve').value = 'Latency: ' + latency.toString() + 'ms';
+        document.getElementById('retrieve-paragraph').innerHTML = 'The service is up and running';
+        if(flag)
+        {
+            document.getElementById('test-retrieve').innerHTML = 'The microservice returns the correct value';
+        }
+        else {
+            document.getElementById('test-retrieve').innerHTML = 'The microservice is returning an incorrect value';
+        }
+    }
+
+    function displaySaveLatency(latency, flag)
+    {
+        console.log('Save to database latency: ' + latency.toString() + 'ms');
+        document.getElementById('latency-save').value = 'Latency: ' + latency.toString() + 'ms';
+        document.getElementById('save-paragraph').innerHTML = 'The service is up and running';
+        if(flag)
+        {
+            document.getElementById('test-save').innerHTML = 'The microservice returns the correct value';
+        }
+        else {
+            document.getElementById('test-save').innerHTML = 'The microservice is returning an incorrect value';
+        }
+    }
+
+
+    async function UpdateLatency()
+    {
+        var startProxy = Date.now();
+        var proxyLatencies = [];
+        await fetch(proxyURL, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'mode': 'no-cors',
+        },
+        }).then((response) =>  response.json())
+        .then((data) => {
+            var flag = false;
+            if(data.max_module == 'a - 70' && data.min_module == 'b - 65')
+            {
+                flag = true;
+            }
+            var proxyLatency = Date.now()-startProxy;
+            proxyLatencies.push(proxyLatency);
+            displayProxyLatency(proxyLatency, flag);
+        }).catch(err => {
+            console.log("Couldn't connect to microservice " + err);
+            document.getElementById("proxy-paragraph").innerHTML = "The Microservice is down";
+            sendEmail();
+        });
+
+        var startProxyBackup = Date.now();
+        var proxyBackupLatency;
+        await fetch(proxyURLBackup, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'mode': 'no-cors',
+        },
+        }).then((response) =>  response.json())
+        .then((data) => {
+            var flag = false;
+            if(data.max_module == 'a - 70' && data.min_module == 'b - 65')
+            {
+                flag = true;
+            }
+            proxyBackupLatency = Date.now()-startProxyBackup;
+            proxyLatencies.push(proxyBackupLatency);
+            displayProxyBackupLatency(proxyBackupLatency, flag);
+        }).catch(err => {
+            console.log("Couldn't connect to microservice " + err);
+            document.getElementById("proxy-backup-paragraph").innerHTML = "The Microservice is down";
+            sendEmail();
+        });
+
+        var startFrontEnd = Date.now();
+        var sortModulesLatency;
+        await fetch(qubgrademesortedmodules, {
+        method: 'GET',
+        headers: {
+            // 'Content-Type': 'application/json',
+            'mode': 'no-cors',
+        },
+        }).then((response) => response.json())
+        .then((data) => {
+            var flag = false;
+            if(data.error == false)
+            {
+                flag = true;
+            }
+            sortModulesLatency = Date.now()-startFrontEnd;
+            proxyLatencies.push(sortModulesLatency);
+            displaySortedModulesLatency(sortModulesLatency, flag);
+        }).catch(err => {
+            console.log("Couldn't connect to microservice " + err);
+            document.getElementById("sortedmodules-paragraph").innerHTML = "The Microservice is down";
+            sendEmail();
+        });
+
+        var startMaxMin = Date.now();
+        var maxMinLatency;
+        await fetch(qubgradememaxmin, {
+        method: 'GET',
+        headers: {
+            // 'Content-Type': 'application/json',
+            'mode': 'no-cors',
+        },
+        }).then((response) => response.json())
+        .then((data) => {
+            maxMinLatency= Date.now()-startMaxMin;
+            var flag = false;
+            if(data.max_module == 'a - 70' && data.min_module == 'b - 65')
+            {
+                flag = true;
+            }
+            proxyLatencies.push(maxMinLatency);
+            displayMaxMinLatency(maxMinLatency, flag);
+        }).catch(err => {
+            console.log("Couldn't connect to microservice " + err);
+            document.getElementById("maxmin-paragraph").innerHTML = "The Microservice is down";
+            sendEmail();
+        });
+
+        var startClassification = Date.now();
+        var classificationLatency
+        await fetch(qubgrademeclassification, {
+        method: 'GET',
+        headers: {
+            // 'Content-Type': 'application/json',
+            'mode': 'no-cors',
+        },
+        }).then((response) => response.json())
+        .then((data) => {
+            var flag = false;
+            if(data.Classification == "First Class")
+            {
+                flag = true;
+            }
+            classificationLatency = Date.now()-startClassification;
+            proxyLatencies.push(classificationLatency);
+            displayClassificationLatency(classificationLatency,flag);
+        }).catch(err => {
+            console.log("Couldn't connect to microservice " + err);
+            document.getElementById("classification-paragraph").innerHTML = "The Microservice is down";
+            sendEmail();
+        });
+
+        var startPercentNeededForFirst = Date.now();
+        var percentNeededLatency;
+        await fetch(qubgrademepercentneededforfirst, {
+        method: 'GET',
+        headers: {
+            // 'Content-Type': 'application/json',
+            'mode': 'no-cors',
+        },
+        }).then((response) => response.json())
+        .then((data) => {
+            var flag = false;
+            if(data.Message == "You have already achieved a first with 70%")
+            {
+                flag = true;
+            }
+            percentNeededLatency = Date.now()-startPercentNeededForFirst;
+            proxyLatencies.push(percentNeededLatency);
+            displayPercentNeededForFirstLatency(percentNeededLatency, flag);
+        }).catch(err => {
+            console.log("Couldn't connect to microservice " + err);
+            document.getElementById("percentneededforfirst-paragraph").innerHTML = "The Microservice is down";
+            sendEmail();
+        });
+
+        var startTotal = Date.now();
+        var totalLatency;
+        await fetch(qubgrademetotal, {
+        method: 'GET',
+        headers: {
+            // 'Content-Type': 'application/json',
+            'mode': 'no-cors',
+        },
+        }).then((response) => response.json())
+        .then((data) => {
+            var flag = false;
+            if(data.message == "Your total marks are: 350")
+            {
+                flag = true;
+            }
+            totalLatency = Date.now()-startTotal;
+            proxyLatencies.push(totalLatency);
+            displayTotalLatency(totalLatency, flag);
+        }).catch(err => {
+            console.log("Couldn't connect to microservice " + err);
+            document.getElementById("total-paragraph").innerHTML = "The Microservice is down";
+            sendEmail();
+        });
+
+        var startAverageGrade = Date.now();
+        var averageLatency;
+        await fetch(qubgrademeaveragegrade, {
+        method: 'GET',
+        headers: {
+            // 'Content-Type': 'application/json',
+            'mode': 'no-cors',
+        },
+        }).then((response) => response.json())
+        .then((data) => {
+            var flag = false;
+            if(data.Message == "Your average grade is: 70")
+            {
+                flag = true;
+            }
+            averageLatency = Date.now()-startAverageGrade;
+            proxyLatencies.push(averageLatency);
+            displayAverageGradeLatency(averageLatency, flag);
+        }).catch(err => {
+            console.log("Couldn't connect to microservice " + err);
+            document.getElementById("averagegrade-paragraph").innerHTML = "The Microservice is down";
+            sendEmail();
+        });
+
+        var startRetrieve = Date.now();
+        var retrieveFromDbLatency;
+        await fetch(qubgrademeretrieve, {
+        method: 'GET',
+        headers: {
+            // 'Content-Type': 'application/json',
+            'mode': 'no-cors',
+        },
+        }).then((response) => response.json())
+        .then((data) => {
+            var flag = false;
+            if(data.userName == "Michal")
+            {
+                flag = true;
+            }
+            retrieveFromDbLatency = Date.now()-startRetrieve;
+            proxyLatencies.push(retrieveFromDbLatency);
+            displayRetrieveLatency(retrieveFromDbLatency, flag);
+        }).catch(err => {
+            console.log("Couldn't connect to microservice " + err);
+            document.getElementById("retrieve-paragraph").innerHTML = "The Microservice is down";
+            sendEmail();
+        });
+
+        var startSaveToDatabase = Date.now();
+        var saveToDblatency;
+        await fetch(qubgrademesave, {
+        method: 'GET',
+        headers: {
+            // 'Content-Type': 'application/json',
+            'mode': 'no-cors',
+        },
+        }).then((response) => response.json())
+        .then((data) => {
+            var flag = false;
+            console.log(data);
+            if(data.Message == "The username Michal has been updated in the database")
+            {
+                flag = true;
+            }
+            saveToDblatency = Date.now()-startSaveToDatabase;
+            proxyLatencies.push(saveToDblatency);
+            displaySaveLatency(saveToDblatency, flag);
+        }).catch(err => {
+            console.log("Couldn't connect to microservice " + err);
+            document.getElementById("save-paragraph").innerHTML = "The Microservice is down";
+            sendEmail();
+        });
+
+        // Waiting 10 seconds so that all the latencies are fetched in time
+        setTimeout(() => {
+            let url = qubgrademesavelatency + "?proxy=" + proxyLatencies[0] + "&proxyBackup=" + proxyLatencies[1] + "&maxMin=" + proxyLatencies[2]
+                        + "&sortedModules=" + proxyLatencies[3] + "&classifyGrade=" + proxyLatencies[4] + "&percentNeededForFirst=" + proxyLatencies[5]
+                        + "&totalMarks=" + proxyLatencies[6] + "&averageGrade=" + proxyLatencies[7] + "&retrieve=" + proxyLatencies[8] + "&saveToDb=" + proxyLatencies[9]
+                        + "&dateSaved=empty";
+
+             // Saving the latencies into the database
+            fetch(url, {
+            method: 'GET',
+            headers: {
+                //'Content-Type': 'application/json',
+                'mode': 'no-cors',
+            },
+            }).then((response) => response.json())
+            .then((data) => {
+                console.log(data);
+                console.log("Latencies saved to db");
+            }).catch(err => {
+                alert("Couldn't save to db " + err);
+                sendEmail();
+            });
+            
+         }, 2000);
+
+        var arrayOfLatencies = [];
+        setTimeout(() => {
+
+            // Fetching all of the latencies for today from the database
+            fetch(qubgrademeretrievelatency, {
+                method: 'GET',
+                headers: {
+                    //'Content-Type': 'application/json',
+                    'mode': 'no-cors',
+                },
+                }).then((response) => response.json())
+                .then((data) => {
+                    console.log(data);
+                    arrayOfLatencies = data;
+                    drawChart(arrayOfLatencies);
+                    console.log("Latencies retrived from the db");
+                }).catch(err => {
+                    alert("Couldn't retrieve latencies from the db " + err);
+                    sendEmail();
+            });
+            
+        }, 3500);
+        
+    }
+
+    function drawChart(arrayOfLatencies)
+    {
+            // Labels for the times
+            var labels = [];
+            var proxyData = [];
+            var proxyBackupData = [];
+            var averageGradeData = [];
+            var maxMinData = [];
+            var percentNeededForFirstData = [];
+            var retrieveFromDbData = [];
+            var saveToDbData = [];
+            var sortedModulesData = [];
+            var totalMarksData = [];
+
+            // Generating the arrays for the graph
+            for(var i = 0; i < arrayOfLatencies.length; i++)
+            {
+                labels.push(arrayOfLatencies[i].dateSaved);
+                proxyData.push(arrayOfLatencies[i].proxy);
+                proxyBackupData.push(arrayOfLatencies[i].proxyBackup);
+                averageGradeData.push(arrayOfLatencies[i].averageGrade);
+                maxMinData.push(arrayOfLatencies[i].maxMin);
+                percentNeededForFirstData.push(arrayOfLatencies[i].percentNeededForFirst);
+                retrieveFromDbData.push(arrayOfLatencies[i].retrieve);
+                saveToDbData.push(arrayOfLatencies[i].saveToDb);
+                sortedModulesData.push(arrayOfLatencies[i].sortedModules);
+                totalMarksData.push(arrayOfLatencies[i].totalMarks);
+            }
+
+            // Drawing the chart
+            new Chart(document.getElementById("line-chart"), {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{ 
+                        data: proxyData,
+                        label: "Proxy",
+                        borderColor: "#3e95cd",
+                        fill: false
+                    }, { 
+                        data: proxyBackupData,
+                        label: "Proxy Backup",
+                        borderColor: "#8e5ea2",
+                        fill: false
+                    }, { 
+                        data: averageGradeData,
+                        label: "Average Grade",
+                        borderColor: "#3cba9f",
+                        fill: false
+                    }, { 
+                        data: maxMinData,
+                        label: "Max Min",
+                        borderColor: "#e8c3b9",
+                        fill: false
+                    }, { 
+                        data: percentNeededForFirstData,
+                        label: "Percent Needed For First",
+                        borderColor: "#c45850",
+                        fill: false
+                    }, { 
+                        data: retrieveFromDbData,
+                        label: "Retrieve results from database data",
+                        borderColor: "#c55650",
+                        fill: false
+                    }, { 
+                        data: saveToDbData,
+                        label: "Save results to database",
+                        borderColor: "#c15820",
+                        fill: false
+                    }, { 
+                        data: sortedModulesData,
+                        label: "Sorted modules",
+                        borderColor: "#c138a0",
+                        fill: false
+                    }, { 
+                        data: totalMarksData,
+                        label: "Total marks",
+                        borderColor: "#c73db0",
+                        fill: false
+                    }
+                    ]
+                },
+                options: {
+                    title: {
+                    display: true,
+                    text: 'Latencies in milliseconds'
+                    }
+                }
+            });
+    }
+
+    function sendEmail()
+    {
+        Email.send({
+            Host : "smtp.elasticemail.com",
+            Port : "2525",
+            Username : "michalguzyburner@gmail.com",
+            Password : "88E1E3A2316941AEE104630725459DD31BE1",
+            To : 'michalguzyburner@gmail.com',
+            From : "michalguzyburner@gmail.com",
+            Subject : "A Microservice is down",
+            Body : "<html><strong>Please check the monitoring microservice, one of the microservices is down</strong></html>"
+        }).then(
+        message => alert("Email sent to inform of a microservice being down")
+        );
+    }
+
+
+</script>
+
+
+<style type="text/css">
+    body {
+        background-color: lightblue;
+        font-family: monospace;
+    }
+    .container {
+        background-color: antiquewhite;
+        padding: 15px;
+        border-radius: 25px;
+        margin: auto;
+        width: 400px;
+    }
+    .monitorContainer {
+        background-color: antiquewhite;
+        padding: 15px;
+        margin-top: 10px;
+        margin-left: 20px;
+        border-radius: 25px;
+        width: 70%;
+    }
+    .text {
+        color: black;
+        font-size: 150%;
+        text-align: center;
+        margin-bottom: 5px;
+    }
+    .qgabutton-active {
+        background-color: green;
+        color: white;
+        padding: 0px 32px;
+        text-align: center;
+        font-size: 18px;
+        margin: 4px 2px; 
+        margin-top: 2px;
+        border-radius: 20px;
+        height: 40px;
+        width: 300px;
+        align-items: center;
+        text-align: center;
+    }
+    .overallContainer {
+        /* display: block;
+        margin: auto;
+        width: 50%; */
+        display: grid;
+        left: 20px;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+    }
+    .textareatext {
+        font-size: 70%;
+    }
+    .paragraph {
+        font-size: 70%;      
+    }
+    .makeCenter {
+        margin: auto;
+        margin-left: 20px;
+    }
+</style>
+</head>
+<body>
+    <div id="container" class="container">
+        <div id="logo" class="text">
+            <p>QUB GradeMe Monitoring Tool</p>
+            <button class="qgabutton-active" onclick="UpdateLatency();">Update latency details</button>
+        </div>
+        
+    </div>
+        <div class="overallContainer">
+            <div id="proxycontainer" class="monitorContainer">
+                <div id="proxytext" class = "text">
+                    Proxy Monitor
+                </div>
+                <div id="proxytext" class = "text">
+                    Latency:
+                    <textarea class="textareatext" id="latency-proxy" rows="1" cols="20" readonly=1 placeholder="Latency here..." value=""></textarea>
+                    <p id= "proxy-paragraph" class="paragraph">Waiting...</p>
+                    <p id= "test-proxy" class="paragraph">Waiting...</p>
+                </div>
+                </textarea>
+            </div>
+        <div id="proxycontainer" class="monitorContainer">
+            <div id="proxytext" class = "text">
+                Proxy Backup Monitor
+            </div>
+            <div id="proxytext" class = "text">
+                Latency:
+                <textarea class="textareatext" id="latency-proxyBackup" rows="1" cols="20" readonly=1 placeholder="Latency here..." value=""></textarea>
+                <p id="proxy-backup-paragraph" class="paragraph">Waiting...</p>
+                <p id="test-proxy-backup" class="paragraph">Waiting...</p>
+            </div>
+            </textarea> 
+        </div>
+        <div id="proxycontainer" class="monitorContainer">
+            <div id="proxytext" class = "text">
+                Sort Modules Monitor
+            </div>
+            <div id="proxytext" class = "text">
+                Latency:
+                <textarea class="textareatext" id="latency-sortedmodules" rows="1" cols="20" readonly=1 placeholder="Latency here..." value=""></textarea>
+                <p id="sortedmodules-paragraph" class="paragraph">Waiting...</p>
+                <p id="test-sortedmodules" class="paragraph">Waiting...</p>
+            </div>
+            </textarea> 
+        </div>
+        <div id="proxycontainer" class="monitorContainer">
+            <div id="proxytext" class = "text">
+                Max Min monitor
+            </div>
+            <div id="proxytext" class = "text">
+                Latency:
+                <textarea class="textareatext" id="latency-maxmin" rows="1" cols="20" readonly=1 placeholder="Latency here..." value=""></textarea>
+                <p id="maxmin-paragraph" class="paragraph">Waiting...</p>
+                <p id="test-maxmin" class="paragraph">Waiting...</p>
+            </div>
+            </textarea> 
+        </div>
+        <div id="proxycontainer" class="monitorContainer">
+            <div id="proxytext" class = "text">
+                Classification monitor
+            </div>
+            <div id="proxytext" class = "text">
+                Latency:
+                <textarea class="textareatext" id="latency-classification" rows="1" cols="20" readonly=1 placeholder="Latency here..." value=""></textarea>
+                <p id="classification-paragraph" class="paragraph">Waiting...</p>
+                <p id="test-classification" class="paragraph">Waiting...</p>
+            </div>
+            </textarea> 
+        </div>
+        <div id="proxycontainer" class="monitorContainer">
+            <div id="proxytext" class = "text">
+                Percent Needed For First monitor
+            </div>
+            <div id="proxytext" class = "text">
+                Latency:
+                <textarea class="textareatext" id="latency-percentneededforfirst" rows="1" cols="20" readonly=1 placeholder="Latency here..." value=""></textarea>
+                <p id="percentneededforfirst-paragraph" class="paragraph">Waiting...</p>
+                <p id="test-percentneededforfirst" class="paragraph">Waiting...</p>
+            </div>
+            </textarea> 
+        </div>
+        <div id="proxycontainer" class="monitorContainer">
+            <div id="proxytext" class = "text">
+                Total Marks monitor
+            </div>
+            <div id="proxytext" class = "text">
+                Latency:
+                <textarea class="textareatext" id="latency-total" rows="1" cols="20" readonly=1 placeholder="Latency here..." value=""></textarea>
+                <p id="total-paragraph" class="paragraph">Waiting...</p>
+                <p id="test-total" class="paragraph">Waiting...</p>
+            </div>
+            </textarea> 
+        </div>
+        <div id="proxycontainer" class="monitorContainer">
+            <div id="proxytext" class = "text">
+                Average Grade monitor
+            </div>
+            <div id="proxytext" class = "text">
+                Latency:
+                <textarea class="textareatext" id="latency-averagegrade" rows="1" cols="20" readonly=1 placeholder="Latency here..." value=""></textarea>
+                <p id="averagegrade-paragraph" class="paragraph">Waiting...</p>
+                <p id="test-averagegrade" class="paragraph">Waiting...</p>
+            </div>
+            </textarea> 
+        </div>
+        <div id="proxycontainer" class="monitorContainer">
+            <div id="proxytext" class = "text">
+                Retrieve From Database monitor
+            </div>
+            <div id="proxytext" class = "text">
+                Latency:
+                <textarea class="textareatext" id="latency-retrieve" rows="1" cols="20" readonly=1 placeholder="Latency here..." value=""></textarea>
+                <p id="retrieve-paragraph" class="paragraph">Waiting...</p>
+                <p id="test-retrieve" class="paragraph">Waiting...</p>
+            </div>
+            </textarea> 
+        </div>
+        <div id="proxycontainer" class="monitorContainer">
+            <div id="proxytext" class = "text">
+                Save to Database monitor
+            </div>
+            <div id="proxytext" class = "text">
+                Latency:
+                <textarea class="textareatext" id="latency-save" rows="1" cols="20" readonly=1 placeholder="Latency here..." value=""></textarea>
+                <p id="save-paragraph" class="paragraph">Waiting...</p>
+                <p id="test-save" class="paragraph">Waiting...</p>
+            </div>
+            </textarea> 
+        </div>
+        
+    </div>
+    <canvas id="line-chart" width="550" height="250"></canvas>
+    
+</body>
+
+</html>
+
+

@@ -1,0 +1,26 @@
+# Uses the c# dotnet docker image
+image: mcr.microsoft.com/dotnet/sdk:6.0
+
+# Build the project and restore dependencies
+build:
+  stage: build
+  script:
+    - 'dotnet build ./qubgrademe-proxy'
+
+# Test the project
+test:
+  stage: test
+  script:
+    - 'dotnet test ./qubgrademe-proxy.test'
+
+# Build the new docker image and push it up to the QPC container registry
+deploy:
+  image: docker:latest
+  stage: deploy
+  tags:
+    - "dind"
+  script:
+    - cd ./qubgrademe-proxy
+    - docker build -t registry.hal.davecutting.uk/40266405/qubgrademe-proxy .
+    - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
+    - docker push registry.hal.davecutting.uk/40266405/qubgrademe-proxy
